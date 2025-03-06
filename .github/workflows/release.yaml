@@ -1,0 +1,40 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        binaryname: [FindProcessesWithNamedPipes]
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.1.1
+        
+      - name: Restore NuGet packages
+        run: nuget restore
+
+      - name: Build Solution
+        run: MSBuild.exe /p:Configuration=Release
+          
+      - name: dir
+        run: dir ./x64/Release/
+        
+      - name: Upload the Release binaries
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ./x64/Release/*.exe
+          file_glob: true
+
